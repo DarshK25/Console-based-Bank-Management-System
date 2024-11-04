@@ -1,0 +1,301 @@
+package bankApplication;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+class BankAcc {
+    private String accHolderName;
+    private String accNo;
+    private double balance;
+    private ArrayList<String> transacHistory;
+    private String accPIN;
+
+    BankAcc() {}
+
+    BankAcc(String Name, String accNo, double initialDeposit, String accPin) {
+        this.accHolderName = Name;
+        this.accNo = accNo;
+        this.balance = initialDeposit;
+        this.accPIN = accPin;
+        transacHistory = new ArrayList<String>();
+        addTransaction("Initial Deposit: $" + initialDeposit);
+    }
+
+    public String getAccHolderName() {
+        return accHolderName;
+    }
+
+    public String getAccNo() {
+        return accNo;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void addTransaction(String transaction) {
+        transacHistory.add(transaction);
+    }
+
+    public void printTransacHistory() {
+        System.out.println("Transaction history:");
+        for (String transaction : transacHistory) {
+            System.out.println(transaction);
+        }
+    }
+
+    public boolean verifyPIN(String enteredPIN) {
+        return accPIN.equals(enteredPIN);
+    }
+
+    public void deposit(double amt) {
+        balance += amt;
+        addTransaction("Deposited amount: $" + amt);
+    }
+
+    public boolean withdraw(double amt) {
+        if (amt <= balance) {
+            balance -= amt;
+            addTransaction("Withdrawn amount: $" + amt);
+            return true;
+        } else {
+            System.out.println("Insufficient Balance!");
+            return false;
+        }
+    }
+}
+
+class BankBranch {
+    private String branchName;
+    private String branchCode;
+    private ArrayList<BankAcc> accounts;
+
+    BankBranch(String branchName, String branchCode) {
+        this.branchName = branchName;
+        this.branchCode = branchCode;
+        this.accounts = new ArrayList<BankAcc>();
+    }
+
+    public String getBranchName() {
+        return branchName;
+    }
+
+    public String getBranchCode() {
+        return branchCode;
+    }
+
+    public void addAccount(BankAcc account) {
+        accounts.add(account);
+    }
+
+    public BankAcc getAccount(String accountNumber) {
+        for (BankAcc account : accounts) {
+            if (account.getAccNo().equals(accountNumber)) {
+                return account;
+            }
+        }
+        return null;
+    }
+}
+
+class BranchManager {
+    private HashMap<String, BankBranch> branches;
+
+    BranchManager() {
+        branches = new HashMap<String, BankBranch>();
+    }
+
+    public void addBranch(String branchName, String branchCode) {
+        BankBranch newBranch = new BankBranch(branchName, branchCode);
+        branches.put(branchCode, newBranch);
+    }
+
+    public BankBranch getBranch(String branchCode) {
+        return branches.get(branchCode);
+    }
+
+    public BankAcc getAccountFromBranch(String branchCode, String accountNumber) {
+        BankBranch branch = getBranch(branchCode);
+        if (branch != null) {
+            return branch.getAccount(accountNumber);
+        }
+        return null;
+    }
+
+    public Map<String, BankBranch> getBranches() {
+        return branches;
+    }
+}
+
+class BankApp {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        BranchManager br = new BranchManager();
+        br.addBranch("Thane Branch", "001");
+        br.addBranch("Bhayandar Branch", "002");
+        br.addBranch("Mira Road Branch", "003");
+
+        System.out.println("~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~"
+                + "Welcome to the State Bank of Maharashtra"
+                + "~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-"
+                + "\n\n");
+
+        while (true) {
+            System.out.println("\t\t\t\t\t\t\t\t1. Create Account");
+            System.out.println("\t\t\t\t\t\t\t\t2. Deposit");
+            System.out.println("\t\t\t\t\t\t\t\t3. Withdraw");
+            System.out.println("\t\t\t\t\t\t\t\t4. Check Balance");
+            System.out.println("\t\t\t\t\t\t\t\t5. Transaction History");
+            System.out.println("\t\t\t\t\t\t\t\t6. Exit");
+            System.out.print("\t\tChoose an option: ");
+
+            try {
+                int choice = sc.nextInt();
+                sc.nextLine(); // consume newline
+
+                switch (choice) {
+                    case 1:
+                        createAccount(br, sc);
+                        break;
+                    case 2:
+                        performDeposit(br, sc);
+                        break;
+                    case 3:
+                        performWithdrawal(br, sc);
+                        break;
+                    case 4:
+                        checkBalance(br, sc);
+                        break;
+                    case 5:
+                        printTransacHistory(br, sc);
+                        break;
+                    case 6:
+                        System.out.println("\t\t\tExiting...");
+                        return;
+                    default:
+                        System.out.println("\t\t\t\t\tInvalid choice. Please try again.");
+                }
+            } catch (Exception e) {
+                System.out.println("\t\t\t\t\t\tInvalid input! Please enter a valid choice.");
+                sc.next(); 
+            }
+        }
+    }
+
+    private static String generateAccountNumber(String branchCode) {
+        return branchCode + String.valueOf((int) (Math.random() * 10000000));
+    }
+
+    private static void createAccount(BranchManager branches, Scanner scanner) {
+        System.out.println("\n\t\tAvailable Branches: ");
+        for (Map.Entry<String, BankBranch> entry : branches.getBranches().entrySet()) {
+            System.out.println("\t\tBranch Code: " + entry.getKey() + ", Branch Name: " + entry.getValue().getBranchName());
+        }
+        System.out.print("\t\tChoose a Branch in which you would like to create an account.\n");
+        System.out.print("\t\tEnter branch code: ");
+        String branchCode = scanner.nextLine();
+        BankBranch branch = branches.getBranch(branchCode);
+
+        if (branch == null) {
+            System.out.println("\t\t\tInvalid branch code.");
+            return;
+        }
+
+        try {
+            System.out.print("\t\tEnter account holder name: ");
+            String accountHolderName = scanner.nextLine();
+
+            String accountNumber = generateAccountNumber(branchCode);
+            System.out.print("\t\tEnter initial deposit: ");
+            double initialDeposit = scanner.nextDouble();
+            scanner.nextLine(); // consume newline
+
+            System.out.print("\t\tSet a 4-digit PIN: ");
+            String accountPIN = scanner.nextLine();
+
+            BankAcc newAccount = new BankAcc(accountHolderName, accountNumber, initialDeposit, accountPIN);
+            branch.addAccount(newAccount);
+            System.out.println("\t\t\t\t\tAccount created successfully! Your account number is: " + accountNumber);
+        } catch (Exception e) {
+            System.out.println("\t\t\t\t\t\t\tError occurred while creating account. Please try again.");
+        }
+    }
+
+    private static BankAcc authenticateUser(BranchManager branch, Scanner scanner) {
+        System.out.print("\t\tEnter branch code: ");
+        String branchCode = scanner.nextLine();
+        BankBranch br = branch.getBranch(branchCode);
+
+        if (br == null) {
+            System.out.println("\t\t\t\t\t\t\t\tInvalid branch code.");
+            return null;
+        }
+
+        try {
+            System.out.print("\t\tEnter account number: ");
+            String accountNumber = scanner.nextLine();
+
+            BankAcc account = br.getAccount(accountNumber);
+            if (account == null) {
+                System.out.println("\t\t\t\t\t\t\t\t\tAccount not found.");
+                return null;
+            }
+
+            System.out.print("\t\t\tEnter PIN: ");
+            String pin = scanner.nextLine();
+            if (!account.verifyPIN(pin)) {
+                System.out.println("\t\t\t\t\t\t\t\t\tInvalid PIN.");
+                return null;
+            }
+
+            return account;
+        } catch (Exception e) {
+            System.out.println("\t\t\t\t\t\t\t\tAuthentication failed. Please try again.");
+            return null;
+        }
+    }
+
+    private static void performDeposit(BranchManager branch, Scanner scanner) {
+        BankAcc account = authenticateUser(branch, scanner);
+        if (account != null) {
+            try {
+                System.out.print("\t\tEnter deposit amount: ");
+                double amount = scanner.nextDouble();
+                account.deposit(amount);
+                System.out.println("\t\t\t\t\t\t\t\tDeposit successful!");
+            } catch (Exception e) {
+                System.out.println("\t\t\t\t\t\t\tError while depositing. Please try again.");
+            }
+        }
+    }
+
+    private static void performWithdrawal(BranchManager branch, Scanner scanner) {
+        BankAcc account = authenticateUser(branch, scanner);
+        if (account != null) {
+            try {
+                System.out.print("\t\t\t\tEnter withdrawal amount: ");
+                double amount = scanner.nextDouble();
+                if (account.withdraw(amount)) {
+                    System.out.println("\t\t\t\t\t\t\tWithdrawal successful!");
+                }
+            } catch (Exception e) {
+                System.out.println("\t\t\t\t\t\tError while withdrawing. Please try again.");
+            }
+        }
+    }
+
+    private static void checkBalance(BranchManager branch, Scanner scanner) {
+        BankAcc account = authenticateUser(branch, scanner);
+        if (account != null) {
+            System.out.println("\t\t\t\t\t\t\tYour balance is: " + account.getBalance());
+        }
+    }
+
+    private static void printTransacHistory(BranchManager branch, Scanner scanner) {
+        BankAcc account = authenticateUser(branch, scanner);
+        if (account != null) {
+            account.printTransacHistory();
+        }
+    }
+}
