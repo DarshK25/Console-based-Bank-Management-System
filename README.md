@@ -48,4 +48,4 @@ To create an account:
 ---
 
 ### Author
-Developed by [Your Name]
+Developed by [Darsh Kalathiya]
